@@ -10,6 +10,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -150,15 +151,16 @@ fun WalletApp(store: CardStore) {
                     }
 
                     if (selected != null) {
+                        val current: CardItem = selected
                         Spacer(Modifier.height(16.dp))
                         AnimatedContent(
-                            targetState = selected,
+                            targetState = current,
                             transitionSpec = {
                                 (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 12 }) togetherWith
                                     fadeOut(tween(150))
                             },
                             label = "details"
-                        ) { card ->
+                        ) { card: CardItem ->
                             DetailsCard(card, reveal) { label, value -> copy(label, value) }
                         }
                     }
@@ -276,8 +278,12 @@ fun CardStack(
                             indication = null,
                             enabled = shown
                         ) {
-                            if (p == 0) { if (ordered.size > 1) onSelect(ordered[1].id) }
-                            else onSelect(card.id)
+                            if (p == 0) {
+                                if (ordered.size > 1) onSelect(ordered[1].id)
+                            } else {
+                                onSelect(card.id)
+                            }
+                            Unit
                         }
                 )
             }

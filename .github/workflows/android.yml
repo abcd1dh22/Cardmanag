@@ -39,7 +39,19 @@ jobs:
 
       # ---------- Debug APK (প্রতিটি push / PR-এ) ----------
       - name: Build debug APK
-        run: gradle assembleDebug --stacktrace
+        shell: bash
+        run: gradle assembleDebug --console=plain 2>&1 | tee build.log
+
+      - name: Show build errors
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '### Build errors'
+            echo '```'
+            grep -E "^e: |What went wrong|Execution failed|error:|requires" -A4 build.log | head -60 || true
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -62,7 +74,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: gradle assembleDebug --console=plain
+        run: gradle assembleRelease --stacktrace
 
       - name: Rename release APK
         if: startsWith(github.ref, 'refs/tags/v')
